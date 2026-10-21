@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#14161f" />
+<title>水印</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============== 顶部栏 ============== -->
+  <header class="topbar">
+    <div class="brand"><i class="dot"></i>水印</div>
+    <div class="top-actions">
+      <button class="btn ghost" id="btnGlobalReset">重置</button>
+      <button class="btn primary" id="btnSaveAll">保存</button>
+    </div>
+  </header>
+
+  <!-- ============== 固定预览区（始终锁定屏幕最上方） ============== -->
+  <section class="preview-zone" id="previewZone">
+    <div class="stage-wrap" id="stageWrap">
+      <div class="stage" id="stage">
+        <img class="photo" id="photoImg" alt="" />
+        <div class="wm-layer" id="wmLayer"></div>
+        <div class="crop-layer" id="cropLayer" hidden>
+          <div class="crop-shade"></div>
+          <div class="crop-box" id="cropBox">
+            <span class="ch" data-h="nw"></span><span class="ch" data-h="n"></span><span class="ch" data-h="ne"></span>
+            <span class="ch" data-h="w"></span><span class="ch" data-h="e"></span>
+            <span class="ch" data-h="sw"></span><span class="ch" data-h="s"></span><span class="ch" data-h="se"></span>
+            <div class="crop-grid"></div>
+          </div>
+        </div>
+        <div class="empty" id="emptyHint">
+          <div class="empty-icon">＋</div>
+          <div class="empty-txt">点击此处上传照片</div>
+          <div class="empty-sub">支持批量选择，最多 10 张</div>
+        </div>
+        <div class="crop-mask" id="cropMask" hidden></div>
+      </div>
+    </div>
+
+    <div class="stage-bar">
+      <button class="mini" id="btnPickPhoto" title="添加照片">＋</button>
+      <div class="thumbs" id="thumbs"></div>
+      <div class="page" id="pageInfo">0/0</div>
+    </div>
+  </section>
+
+  <!-- ============== 下部工具区（独立滚动） ============== -->
+  <section class="panel" id="panel">
+    <nav class="tabs" id="tabs">
+      <button class="tab active" data-tab="photo">照片编辑</button>
+      <button class="tab" data-tab="lib">水印库</button>
+      <button class="tab" data-tab="wm">水印调整</button>
+      <button class="tab" data-tab="out">导出</button>
+    </nav>
+
+    <!-- ---------- 照片编辑 ---------- -->
+    <div class="pane active" data-pane="photo">
+      <div class="sec-title">基础编辑</div>
+      <div class="icon4">
+        <button class="ibtn" id="btnRotL"><span class="ic">↺</span><span class="lb">左转90°</span></button>
+        <button class="ibtn" id="btnRotR"><span class="ic">↻</span><span class="lb">右转90°</span></button>
+        <button class="ibtn" id="btnMirrorH"><span class="ic">⇋</span><span class="lb">水平镜像</span></button>
+        <button class="ibtn" id="btnMirrorV"><span class="ic">⇅</span><span class="lb">垂直镜像</span></button>
+      </div>
+
+      <div class="slider-row">
+        <div class="sl-head"><span>图片微调旋转</span><b id="valFine">0°</b></div>
+        <input type="range" id="rngFine" min="-45" max="45" step="1" value="0" />
+        <div class="sl-range"><span>-45°</span><span>+45°</span></div>
+      </div>
+
+      <div class="sec-title">裁剪</div>
+      <div class="btn-row">
+        <button class="btn soft" id="btnCrop">进入裁剪</button>
+        <button class="btn soft" id="btnCropCancel" hidden>取消裁剪</button>
+        <button class="btn primary" id="btnCropApply" hidden>应用裁剪</button>
+      </div>
+      <div class="ratio-row" id="ratioRow" hidden>
+        <button class="chip active" data-ratio="free">自由</button>
+        <button class="chip" data-ratio="1:1">1:1</button>
+        <button class="chip" data-ratio="4:3">4:3</button>
+        <button class="chip" data-ratio="3:4">3:4</button>
+        <button class="chip" data-ratio="16:9">16:9</button>
+        <button class="chip" data-ratio="9:16">9:16</button>
+      </div>
+
+      <div class="sec-title">当前照片</div>
+      <div class="btn-row">
+        <button class="btn soft" id="btnResetPhoto">还原这张照片的编辑</button>
+        <button class="btn soft" id="btnDeletePhoto">从列表移除</button>
+      </div>
+      <p class="tip" id="photoInfo">未选择照片</p>
+    </div>
+
+    <!-- ---------- 水印库 ---------- -->
+    <div class="pane" data-pane="lib">
+      <div class="btn-row">
+        <button class="btn primary" id="btnAddWm">添加水印</button>
+        <button class="btn soft" id="btnAddText">添加文字</button>
+        <button class="btn soft" id="btnBatchWm">批量导入</button>
+      </div>
+      <p class="tip">点击水印图标 = 直接添加到当前照片；<b>长按水印图标</b> = 弹出选项（删除需二次确认）。<b>文字水印</b>支持字号、颜色、不透明度与描边，导出时按原图分辨率重新绘制，放大不模糊。水印保存在 App 内部，下次打开可直接取用。</p>
+      <div class="lib-grid" id="libGrid"></div>
+      <div class="empty-lib" id="libEmpty">还没有水印，点击上方按钮添加</div>
+    </div>
+
+    <!-- ---------- 水印调整 ---------- -->
+    <div class="pane" data-pane="wm">
+      <div class="target-line">
+        <span id="selLabel">未选中水印</span>
+        <span class="hint" id="selHint">点击图片上的水印可选中</span>
+      </div>
+
+      <div class="slider-row" id="rowScale">
+        <div class="sl-head"><span>大小缩放</span><b id="valScale">20%</b></div>
+        <input type="range" id="rngScale" min="1" max="200" step="1" value="20" />
+        <div class="sl-range"><span>1%</span><span>200%</span></div>
+      </div>
+
+      <div class="slider-row" id="rowRot">
+        <div class="sl-head"><span>旋转角度</span><b id="valRot">0%</b></div>
+        <input type="range" id="rngRot" min="-100" max="100" step="1" value="0" />
+        <div class="sl-range"><span>-100%</span><span>+100% (180°)</span></div>
+      </div>
+
+      <div class="slider-row" id="rowOpa">
+        <div class="sl-head"><span>不透明度</span><b id="valOpa">100%</b></div>
+        <input type="range" id="rngOpa" min="0" max="100" step="1" value="100" />
+        <div class="sl-range"><span>0%</span><span>100%</span></div>
+      </div>
+
+      <div class="switch-row">
+        <div>
+          <div class="sw-title">一键平铺 / 平排</div>
+          <div class="sw-sub">按比例阵列摆放，铺满整张图片（密度自动适配）</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="chkTile" /><i></i></label>
+      </div>
+
+      <div class="slider-row" id="rowGap" hidden>
+        <div class="sl-head"><span>平铺阵列密度</span><b id="valGap">自动</b></div>
+        <input type="range" id="rngGap" min="5" max="60" step="1" value="25" />
+        <div class="sl-range"><span>5% 密集</span><span>60% 稀疏</span></div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn soft" id="btnPlus1">＋1 添加数量</button>
+        <button class="btn soft" id="btnCenter">居中</button>
+        <button class="btn soft" id="btnResetItem">恢复默认</button>
+        <button class="btn soft danger" id="btnDelItem">移除该水印</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn soft" id="btnApplyAll">把当前水印设置同步到全部照片</button>
+      </div>
+    </div>
+
+    <!-- ---------- 导出 ---------- -->
+    <div class="pane" data-pane="out">
+      <div class="sec-title">输出画质</div>
+      <div class="switch-row">
+        <div>
+          <div class="sw-title">无损 PNG 输出</div>
+          <div class="sw-sub">完全无损，文件较大</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="chkPng" /><i></i></label>
+      </div>
+      <div class="slider-row" id="rowQuality">
+        <div class="sl-head"><span>JPEG 画质</span><b id="valQuality">98%</b></div>
+        <input type="range" id="rngQuality" min="80" max="100" step="1" value="98" />
+        <div class="sl-range"><span>80%</span><span>100%</span></div>
+      </div>
+      <p class="tip">导出按原始分辨率输出，不做任何缩放；水印绘制后再编码，画质与原图一致（不降采样）。</p>
+
+      <div class="sec-title">保存</div>
+      <div class="btn-row">
+        <button class="btn primary" id="btnSaveAll2">保存全部照片</button>
+        <button class="btn soft" id="btnSaveCur">仅保存当前这张</button>
+      </div>
+      <p class="tip" id="outInfo">照片数量：0 / 10</p>
+
+      <div class="sec-title danger-title">危险操作</div>
+      <div class="btn-row">
+        <button class="btn danger" id="btnGlobalReset2">一键重置全部参数</button>
+      </div>
+      <p class="tip">重置会清除所有照片的编辑与水印摆放（水印库保留）。需要二次确认。</p>
+    </div>
+  </section>
+</div>
+
+<input type="file" id="filePhoto" accept="image/*" multiple hidden />
+<input type="file" id="fileWm" accept="image/*" multiple hidden />
+
+<!-- ============== 通用弹层 ============== -->
+<div class="modal" id="modal" hidden>
+  <div class="modal-card">
+    <div class="modal-title" id="mTitle">提示</div>
+    <div class="modal-msg" id="mMsg"></div>
+    <div class="modal-btns" id="mBtns"></div>
+  </div>
+</div>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="sheet-card">
+    <div class="sheet-title" id="shTitle"></div>
+    <div class="sheet-list" id="shList"></div>
+    <button class="sheet-cancel" id="shCancel">取消</button>
+  </div>
+</div>
+
+<!-- ============== 文字水印编辑器 ============== -->
+<div class="tedit" id="tedit" hidden>
+  <div class="tedit-card">
+    <div class="tedit-title" id="tEditTitle">添加文字水印</div>
+
+    <div class="tedit-prev"><canvas id="tPreview"></canvas></div>
+
+    <input class="tin" id="tText" type="text" maxlength="40" placeholder="输入水印文字（最多 40 字）" />
+
+    <div class="slider-row">
+      <div class="sl-head"><span>字号（添加时的默认大小）</span><b id="valTFont">20%</b></div>
+      <input type="range" id="rngTFont" min="5" max="90" step="1" value="20" />
+      <div class="sl-range"><span>5% 小</span><span>90% 大</span></div>
+    </div>
+
+    <div class="slider-row">
+      <div class="sl-head"><span>不透明度</span><b id="valTOpa">100%</b></div>
+      <input type="range" id="rngTOpa" min="5" max="100" step="1" value="100" />
+      <div class="sl-range"><span>5%</span><span>100%</span></div>
+    </div>
+
+    <div class="slider-row">
+      <div class="sl-head"><span>描边粗细</span><b id="valTStroke">4</b></div>
+      <input type="range" id="rngTStroke" min="0" max="10" step="1" value="4" />
+      <div class="sl-range"><span>0 无描边</span><span>10 最粗</span></div>
+    </div>
+
+    <div class="trow"><span class="tlab">文字颜色</span><div class="sws" id="swText"></div></div>
+    <div class="trow"><span class="tlab">描边颜色</span><div class="sws" id="swStroke"></div></div>
+
+    <div class="trow">
+      <button class="chip" id="btnTBold">加粗</button>
+      <button class="chip" id="btnTItalic">斜体</button>
+      <button class="chip" id="btnTReset">恢复默认样式</button>
+    </div>
+
+    <div class="modal-btns">
+      <button class="btn no" id="btnTCancel">取消</button>
+      <button class="btn yes2" id="btnTOk">存入水印库</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+<div class="busy" id="busy" hidden><div class="spin"></div><div id="busyTxt">处理中…</div></div>
+
+<script src="app.js"></script>
+</body>
+</html>
