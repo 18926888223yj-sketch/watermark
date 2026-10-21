@@ -2,6 +2,13 @@
 
 一个纯前端的图片水印工具，支持 Web 与 Android（WebView 封装）两端运行。
 
+## 下载安装
+
+**[⬇ 下载 Android APK（v1.2.0）](https://github.com/18926888223yj-sketch/watermark/releases/download/v1.2.0/watermark-v1.2.0.apk)**
+
+支持 Android 7.0 及以上，约 73 KB。安装时需允许「安装未知来源应用」。
+更多版本见 [Releases](https://github.com/18926888223yj-sketch/watermark/releases)。
+
 ## 功能
 
 - **文字水印**：自定义内容、字号、颜色、透明度、旋转角度
